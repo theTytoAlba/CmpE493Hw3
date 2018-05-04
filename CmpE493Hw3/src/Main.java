@@ -11,30 +11,39 @@ public class Main {
 		System.out.println("Reading stories...");
 		ArrayList<Story> stories = readStories("Dataset");
 		System.out.println("Reading stories DONE.");
-		HashMap<String, Double> idf = calculateIdf(stories);
+		System.out.println("Calculating idf scores...");
+		ArrayList<HashMap<String,Double>> tfIdfScores = calculateTfIdf(stories);
+		System.out.println("Calculating idf scores DONE.");
 	}
 	
 	/**
-	 * Calculates idf scores for each word in story set.
+	 * Calculates tf-idf scores for each word in story set.
 	 */
-	private static HashMap<String, Double> calculateIdf(ArrayList<Story> stories) {
+	private static ArrayList<HashMap<String, Double>> calculateTfIdf(ArrayList<Story> stories) {
 		// < Word : # of documents containing the word >.
 		HashMap<String, Integer> df = new HashMap<>();
+		// Array of < Word : # of times term occurs in document >
+		ArrayList<HashMap<String, Integer>> tfScores = new ArrayList<>();
 		for (Story story : stories) {
-			// Word set for this story.
-			HashSet<String> wordsOfStory = new HashSet<>();	
+			// < Word : # of times term occurs in document >
+			HashMap<String, Integer> tf = new HashMap<>();	
 			for (String line : story.sentences) {
 				for (String word : normalize(line).split(" ")) {
 					// Remove single char words
 					if (word.length() < 2) {
 						continue;
+					}
+					if (tf.containsKey(word)) {
+						tf.put(word, df.get(word) + 1);
 					} else {
-						wordsOfStory.add(word);
+						tf.put(word, 1);	
 					}
 				}
 			}
+			// Add this document's term frequencies.
+			tfScores.add(tf);
 			// Update this story's words' df.
-			for (String word : wordsOfStory) {
+			for (String word : tf.keySet()) {
 				if (df.containsKey(word)) {
 					df.put(word, df.get(word) + 1);
 				} else {
@@ -47,7 +56,17 @@ public class Main {
 		for (String word : df.keySet()) {
 			idf.put(word, Math.log10(1000.0/df.get(word)));
 		}
-		return idf;
+		// Calculate tf-idf for all docs.
+		ArrayList<HashMap<String, Double>> tfIdf = new ArrayList<>();
+		for (int docId = 0; docId < tfScores.size(); docId++) {
+			HashMap<String, Double> tfIdfForDoc = new HashMap<>();
+			for (String word : tfScores.get(docId).keySet()) {
+				double tfScore = tfScores.get(docId).get(word) == 0 ? 0 : 1 + Math.log10(tfScores.get(docId).get(word));
+				tfIdfForDoc.put(word, tfScore * idf.get(word));
+			}
+			tfIdf.add(tfIdfForDoc);
+		}
+		return tfIdf;
 	}
 
 	/**
