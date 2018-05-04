@@ -20,8 +20,35 @@ public class Main {
 		System.out.println("Calculating similarities...");
 		ArrayList<ArrayList<ArrayList<Double>>> similarities = buildSimilarityMatrices(stories, tfIdfScores);
 		System.out.println("Calculating similarities DONE.");
+		// Build the adjacency matrix
+		System.out.println("Building adjacency matrix...");
+		ArrayList<ArrayList<ArrayList<Integer>>> adjacencyMatrix = buildAdjacencyMatrix(similarities);
+		System.out.println("Building adjacency matrix DONE.");
+		System.out.println(adjacencyMatrix.get(0).get(6).toString());
+		
 	}
 	
+	/**
+	 * Adds an edge between sentences if they have a similarity more than 0.10.
+	 */
+	private static ArrayList<ArrayList<ArrayList<Integer>>> buildAdjacencyMatrix(ArrayList<ArrayList<ArrayList<Double>>> similarities) {
+		ArrayList<ArrayList<ArrayList<Integer>>> adjacencyMatrix = new ArrayList<>();
+		for (int docId = 0; docId < similarities.size(); docId++) {
+			ArrayList<ArrayList<Integer>> adjacencyForDocument = new ArrayList<>();
+			for (int sentence1 = 0; sentence1 < similarities.get(docId).size(); sentence1++) {
+				ArrayList<Integer> adjacencyForSentence = new ArrayList<>();
+				for (int sentence2 = 0; sentence2 < similarities.get(docId).get(sentence1).size(); sentence2++) {
+					if (similarities.get(docId).get(sentence1).get(sentence2) > 0.10) {
+						adjacencyForSentence.add(sentence2);
+					}
+				}
+				adjacencyForDocument.add(adjacencyForSentence);
+			}
+			adjacencyMatrix.add(adjacencyForDocument);
+		}
+		return adjacencyMatrix;
+	}
+
 	/**
 	 * Builds a similarity matrix for all documents.
 	 */
