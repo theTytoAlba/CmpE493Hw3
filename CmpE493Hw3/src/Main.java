@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -24,9 +25,52 @@ public class Main {
 		System.out.println("Building adjacency matrix...");
 		ArrayList<ArrayList<ArrayList<Integer>>> adjacencyMatrix = buildAdjacencyMatrix(similarities);
 		System.out.println("Building adjacency matrix DONE.");
+		// Probabilities with teleportation
+		System.out.println("Building transition matrix with teleportation...");
+		ArrayList<ArrayList<ArrayList<Double>>> transitionMatrix = buildTransitionMatrix(adjacencyMatrix, 0.15);
+		System.out.println("Building transition matrix with teleportation DONE.");
 		
+		for (ArrayList<Double> line : transitionMatrix.get(0)) {
+			System.out.println(line.toString());
+		}
 	}
 	
+	/**
+	 * Takes in the adjacency matrix and teleportation rate.
+	 * Builds the transition matrix.
+	 */
+	private static ArrayList<ArrayList<ArrayList<Double>>> buildTransitionMatrix(
+			ArrayList<ArrayList<ArrayList<Integer>>> adjacencyMatrix, double teleportationRate) {
+		ArrayList<ArrayList<ArrayList<Double>>> transitionMatrix = new ArrayList<>();
+		for (int docId = 0; docId < adjacencyMatrix.size(); docId++) {
+			ArrayList<ArrayList<Double>> transitionMatrixForDocument = new ArrayList<>();
+			for (int lineId = 0; lineId < adjacencyMatrix.get(docId).size(); lineId++) {
+				// Start with distributing the teleportation rate.
+				ArrayList<Double> transitionLine = new ArrayList<>(
+						Collections.nCopies(adjacencyMatrix.get(docId).get(lineId).size(), 
+								teleportationRate/adjacencyMatrix.get(docId).get(lineId).size()));
+				// Count the edges.
+				int edgeCount = 0;
+				for (int edge : adjacencyMatrix.get(docId).get(lineId)) {
+					if (edge == 1) {
+						edgeCount++;
+					}
+				}
+				// Distribute remaining possibilities to the edges.
+				for (int i = 0; i < transitionLine.size(); i++) {
+					if (adjacencyMatrix.get(docId).get(lineId).get(i) == 1) {
+						transitionLine.set(i, transitionLine.get(i) + (1-teleportationRate)/edgeCount);
+					}
+				}
+				// Add the line to the document.
+				transitionMatrixForDocument.add(transitionLine);
+			}
+			// Add the document to the matrix.
+			transitionMatrix.add(transitionMatrixForDocument);
+		}
+		return transitionMatrix;
+	}
+
 	/**
 	 * Adds an edge between sentences if they have a similarity more than 0.10.
 	 */
