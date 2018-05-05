@@ -24,7 +24,6 @@ public class Main {
 		System.out.println("Building adjacency matrix...");
 		ArrayList<ArrayList<ArrayList<Integer>>> adjacencyMatrix = buildAdjacencyMatrix(similarities);
 		System.out.println("Building adjacency matrix DONE.");
-		System.out.println(adjacencyMatrix.get(0).get(6).toString());
 		
 	}
 	
@@ -39,7 +38,9 @@ public class Main {
 				ArrayList<Integer> adjacencyForSentence = new ArrayList<>();
 				for (int sentence2 = 0; sentence2 < similarities.get(docId).get(sentence1).size(); sentence2++) {
 					if (similarities.get(docId).get(sentence1).get(sentence2) > 0.10) {
-						adjacencyForSentence.add(sentence2);
+						adjacencyForSentence.add(1);
+					} else {
+						adjacencyForSentence.add(0);	
 					}
 				}
 				adjacencyForDocument.add(adjacencyForSentence);
