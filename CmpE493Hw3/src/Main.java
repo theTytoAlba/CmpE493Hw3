@@ -11,7 +11,7 @@ public class Main {
 	public static void main(String[] args) {
 		// Read stories
 		System.out.println("Reading stories...");
-		ArrayList<Story> stories = readStories("Dataset");
+		ArrayList<Story> stories = readStories(args[0]);
 		System.out.println("Reading stories DONE.");
 		// Calculate tf-idf scores
 		System.out.println("Calculating tf-idf scores...");
@@ -33,7 +33,7 @@ public class Main {
 		System.out.println("Applying the power method...");
 		ArrayList<ArrayList<Double>> distributions = applyPowerMethod(transitionMatrix);
 		System.out.println("Applying the power method DONE.");
-		
+		System.out.println(distributions.get(Integer.parseInt(args[1].split("\\.")[0])-1).toString());
 	}
 	
 	/**
