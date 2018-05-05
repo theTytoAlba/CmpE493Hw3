@@ -29,12 +29,66 @@ public class Main {
 		System.out.println("Building transition matrix with teleportation...");
 		ArrayList<ArrayList<ArrayList<Double>>> transitionMatrix = buildTransitionMatrix(adjacencyMatrix, 0.15);
 		System.out.println("Building transition matrix with teleportation DONE.");
+		// Power method
+		System.out.println("Applying the power method...");
+		ArrayList<ArrayList<Double>> distributions = applyPowerMethod(transitionMatrix);
+		System.out.println("Applying the power method DONE.");
 		
-		for (ArrayList<Double> line : transitionMatrix.get(0)) {
-			System.out.println(line.toString());
-		}
 	}
 	
+	/**
+	 * Applies the power method to all documents.
+	 */
+	private static ArrayList<ArrayList<Double>> applyPowerMethod(ArrayList<ArrayList<ArrayList<Double>>> transitionMatrix) {
+		ArrayList<ArrayList<Double>> distributions = new ArrayList<>();
+		for (int docId = 0; docId < transitionMatrix.size(); docId++) {
+			ArrayList<Double> initialDistribution = new ArrayList<>();
+			initialDistribution.add(1.0);
+			for (int i = 1; i < transitionMatrix.get(docId).size(); i++) {
+				initialDistribution.add(0.0);
+			}
+			distributions.add(powerMethod(initialDistribution, transitionMatrix.get(docId)));
+		}
+		return distributions;
+	}
+
+	/**
+	 * Recursively calls itself until the distribution is stabilized.
+	 */
+	private static ArrayList<Double> powerMethod(ArrayList<Double> distribution,
+			ArrayList<ArrayList<Double>> transition) {
+		// Iterate
+		ArrayList<Double> newDistribution = multiply(distribution, transition);
+		// Check if it is stabilized.
+		double distance = 0;
+		for (int i = 0; i < distribution.size(); i++) {
+			distance += (distribution.get(i) - newDistribution.get(i))*(distribution.get(i) - newDistribution.get(i));
+		}
+		distance = Math.sqrt(distance);
+		// Iterate if not stabilized.
+		if (distance > 0.00001) {
+			return powerMethod(newDistribution, transition);
+		} else {
+			return newDistribution;
+		}
+	}
+
+	/**
+	 * Standard matrix multiplication.
+	 */
+	private static ArrayList<Double> multiply(ArrayList<Double> distribution,
+			ArrayList<ArrayList<Double>> transition) {
+		ArrayList<Double> newDistribution = new ArrayList<>();
+		for (int i = 0; i < transition.size(); i++) {
+			double value = 0;
+			for (int j = 0; j < distribution.size(); j++) {
+				value += distribution.get(j) * transition.get(j).get(i);
+			}
+			newDistribution.add(value);
+		}
+		return newDistribution;
+	}
+
 	/**
 	 * Takes in the adjacency matrix and teleportation rate.
 	 * Builds the transition matrix.
