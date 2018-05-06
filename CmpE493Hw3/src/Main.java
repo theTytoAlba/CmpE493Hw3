@@ -8,7 +8,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class Main {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		// Read stories
 		System.out.println("Reading stories...");
 		ArrayList<Story> stories = readStories(args[0]);
@@ -34,6 +34,88 @@ public class Main {
 		ArrayList<ArrayList<Double>> distributions = applyPowerMethod(transitionMatrix);
 		System.out.println("Applying the power method DONE.");
 		System.out.println(distributions.get(Integer.parseInt(args[1].split("\\.")[0])-1).toString());
+		// Create reference files for Rouge.
+		/*
+		for (int i = 1; i <= stories.size(); i++) {
+			String taskName = "news" + i;
+			try {
+				PrintWriter writer = new PrintWriter(taskName + "_reference1.txt", "UTF-8");
+				for (int j = 1; j <= stories.get(i-1).summary.size(); j++) {
+					writer.println(stories.get(i-1).summary.get(j-1));
+				}
+				writer.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		*/
+		
+		// Create system files for Rouge.
+		/*
+		for (int i = 1; i <= stories.size(); i++) {
+			String taskName = "news" + i;
+			ArrayList<Double> dist = distributions.get(i-1);
+			// Find the highest 3.
+			int highest1 = 0, highest2 = 1, highest3 = 2;
+			for (int k = 3; k < dist.size(); k++) {
+				if (dist.get(k) > dist.get(highest3)) {
+					highest3 = k;
+				}
+				
+				if (dist.get(highest3) > dist.get(highest2)) {
+					int temp = highest3;
+					highest3 = highest2;
+					highest2 = temp;
+				}
+				
+				if (dist.get(highest2) > dist.get(highest1)) {
+					int temp = highest2;
+					highest2 = highest1;
+					highest1 = temp;
+				}
+			}
+			try {
+				PrintWriter writer = new PrintWriter(taskName + "_system1" + ".txt", "UTF-8");
+				writer.println(stories.get(i-1).sentences.get(highest1));
+				writer.println(stories.get(i-1).sentences.get(highest2));
+				writer.println(stories.get(i-1).sentences.get(highest3));
+				writer.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}	
+		*/
+		// Calculate average precision, recall and f score values.
+		/*
+		Scanner in = new Scanner(new File("Dataset/results.txt"));
+		System.out.println(in.nextLine());
+		double Avg_Recall1 = 0, Avg_Precision1=0, Avg_FScore1=0;
+		double Avg_Recall2 = 0, Avg_Precision2=0, Avg_FScore2=0;
+		double Avg_RecallL = 0, Avg_PrecisionL=0, Avg_FScoreL=0;
+		while (in.hasNextLine()) {
+			String line = in.nextLine();
+			in.nextLine();
+			String[] parts = line.split(",");
+			if (parts[0].equals("ROUGE-L+StopWordRemoval")) {
+				Avg_RecallL += Double.parseDouble(parts[3]);
+				Avg_PrecisionL += Double.parseDouble(parts[4]);
+				Avg_FScoreL += Double.parseDouble(parts[5]);
+			}
+			if (parts[0].equals("ROUGE-1+StopWordRemoval")) {
+				Avg_Recall1 += Double.parseDouble(parts[3]);
+				Avg_Precision1 += Double.parseDouble(parts[4]);
+				Avg_FScore1 += Double.parseDouble(parts[5]);
+			}
+			if (parts[0].equals("ROUGE-2+StopWordRemoval")) {
+				Avg_Recall2 += Double.parseDouble(parts[3]);
+				Avg_Precision2 += Double.parseDouble(parts[4]);
+				Avg_FScore2 += Double.parseDouble(parts[5]);
+			}
+		}
+		System.out.println(Avg_Recall1/1000 + ", " + Avg_Precision1/1000 + ", " + Avg_FScore1/1000);
+		System.out.println(Avg_Recall2/1000 + ", " + Avg_Precision2/1000 + ", " + Avg_FScore2/1000);
+		System.out.println(Avg_RecallL/1000 + ", " + Avg_PrecisionL/1000 + ", " + Avg_FScoreL/1000);
+		*/
 	}
 	
 	/**
@@ -339,7 +421,7 @@ public class Main {
 		}
 		// Read summary
 		while (in.hasNextLine()) {
-			story.sentences.add(in.nextLine());
+			story.summary.add(in.nextLine());
 		}
 		in.close();
 		return story;
